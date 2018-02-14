@@ -1,0 +1,9 @@
+version: '3'
+services:
+  web:
+    container_name: haedal-project
+    build: .
+    volumes:
+      - .:/go/src/github.com/voidsatisfaction/haedal-project
+    ports:
+      - "18080:8080"
