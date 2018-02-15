@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+type HandlerFunc func(*Context)
+
 type router struct {
 	// method / pattern / handler
 	// e.g POST / "/users" / createUser
@@ -30,7 +32,7 @@ func (r *router) HandleFunc(method, pattern string, h HandlerFunc) {
 func (r *router) handler() HandlerFunc {
 	return func(c *Context) {
 		for pattern, handler := range r.handlers[c.Request.Method] {
-			if ok, params := match(pattern, c.Request.URL.Path); ok {
+			if params, ok := match(pattern, c.Request.URL.Path); ok {
 				for k, v := range params {
 					c.Params[k] = v
 				}
@@ -43,31 +45,30 @@ func (r *router) handler() HandlerFunc {
 	}
 }
 
-func match(pattern, path string) (bool, map[string]string) {
+func match(pattern, path string) (map[string]string, bool) {
 	if pattern == path {
-		return true, nil
+		return nil, true
 	}
 
 	patterns := strings.Split(pattern, "/")
 	paths := strings.Split(path, "/")
 
 	if len(patterns) != len(paths) {
-		return false, nil
+		return nil, false
 	}
 
 	params := make(map[string]string)
 
 	for i := 0; i < len(patterns); i++ {
 		switch {
-		// QUESTION: if len(patterns) > len(paths) => runtime error?
 		case patterns[i] == paths[i]:
 
 		case len(patterns[i]) > 0 && patterns[i][0] == ':':
 			params[patterns[i][1:]] = paths[i]
 		default:
-			return false, nil
+			return nil, false
 		}
 	}
 
-	return true, params
+	return params, true
 }

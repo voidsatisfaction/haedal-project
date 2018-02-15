@@ -17,8 +17,13 @@ func NewServer() *Server {
     LogHandler,
     RecoverHandler,
     StaticMiddleware("./pilot/example"), // static middleware path should be considered from cwd
+    ParseFormHandler,
   }
   return s
+}
+
+func (s *Server) Use(middlewares ...Middleware) {
+  s.middlewares = append(s.middlewares, middlewares...)
 }
 
 func (s *Server) Run(addr string) {
